@@ -529,7 +529,10 @@ if (semesterId === 'semester-3-2' && areaTitle === '선택과목1') {
     alert('3학년 2학기 선택과목1은 최대 20학점까지 선택할 수 있습니다.');
     return;
   }
-
+if (num2 > 2) {
+  alert('2학점 과목은 최대 2개까지만 선택할 수 있습니다.');
+  return;
+}
   // 조합이 조건에 안 맞을 경우 차단
   if (total1 === 20) {
     const valid =
