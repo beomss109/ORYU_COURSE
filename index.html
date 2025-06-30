@@ -520,20 +520,22 @@ if (semesterId === 'semester-3-2' && areaTitle === '선택과목1') {
   const credits1 = selectedItems1.map(el =>
     parseInt(el.textContent.match(/\((\d+)\)/)[1])
   );
-  const total1 = credits1.reduce((a, b) => a + b, 0);
-  const num4 = credits1.filter(c => c === 4).length;
-  const num2 = credits1.filter(c => c === 2).length;
 
-  // 총 학점 초과 시 차단
+  const newCredits = [...credits1, credit]; // 현재 클릭한 과목 포함
+  const total1 = newCredits.reduce((a, b) => a + b, 0);
+  const num4 = newCredits.filter(c => c === 4).length;
+  const num2 = newCredits.filter(c => c === 2).length;
+
   if (total1 > 20) {
     alert('3학년 2학기 선택과목1은 최대 20학점까지 선택할 수 있습니다.');
     return;
   }
-if (num2 > 2) {
-  alert('2학점 과목은 최대 2개까지만 선택할 수 있습니다.');
-  return;
-}
-  // 조합이 조건에 안 맞을 경우 차단
+
+  if (num2 > 2) {
+    alert('2학점 과목은 최대 2개까지만 선택할 수 있습니다.');
+    return;
+  }
+
   if (total1 === 20) {
     const valid =
       (num4 === 5 && num2 === 0) ||
