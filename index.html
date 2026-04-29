@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>오류고등학교 1학년 수강신청 시뮬레이터</title>
+  <title>오류고등학교 2025학년도 입학생 수강신청 시뮬레이터</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -195,7 +195,7 @@
   <ul>
     <li>1. 국어, 수학, 영어 영역의 과목 신청 총합은 <strong>57학점</strong>을 초과할 수 없습니다.</li>
     <li>2. 제2외국어, 정보, 교양 영역의 과목 신청 총합은 <strong>12학점 이상</strong> 신청해야 합니다.</li>
-    <li>3. <strong>선수 과목</strong>을 먼저 이수해야 상위 과목을 선택할 수 있습니다.</li>
+    <li>3. <strong>3학년 과학 진로과목은 2학년 때 선수 과목</strong>을 먼저 이수해야 상위 과목을 선택할 수 있습니다.</li>
   </ul>
 </div>
 <div class="legend">
@@ -429,36 +429,59 @@ const courseLimits = {
   'semester-3-1-선택과목1': 4,
   };
 
+// ✅ 학기 표시명 정의
+// - 학점 계산용 semesterConfigs는 기존 숫자 구조를 그대로 유지합니다.
+// - 경고 문구에 표시할 학기명만 여기에서 따로 관리합니다.
+const semesterLabels = {
+  'semester-2-1': '2학년 1학기',
+  'semester-2-2': '2학년 2학기',
+  'semester-3-1': '3학년 1학기',
+  'semester-3-2': '3학년 2학기'
+};
+
+// ✅ 과목명 정리 함수
+// 예: "물리학_일(4)" → "물리학"
+// 예: "전자기와 양자_진(4)" → "전자기와 양자"
+function getCourseName(courseText) {
+  return courseText.split('_')[0].trim();
+}
+
 // ✅ 선수 과목 위계 정의
+// 과목명만 기준으로 관리하여 "_일(4)", "_진(4)" 같은 세부 표기 변화에 덜 흔들리도록 정리했습니다.
 const coursePrerequisites = {
-  '전자기와 양자_진(4)': { required: '물리학_일(4)', semester: 'semester-2-1' },
-  '역학과 에너지_진(4)': { required: '물리학_일(4)', semester: 'semester-2-1' },
-  '생물의 유전_진(4)': { required: '생명과학_일(4)', semester: 'semester-2-1' },
-  '세포와 물질대사_진(4)': { required: '생명과학_일(4)', semester: 'semester-2-1' },
-  '물질과 에너지_진(4)': { required: '화학_일(4)', semester: 'semester-2-2' },
-  '화학반응의 세계_진(4)': { required: '화학_일(4)', semester: 'semester-2-2' },
-  '지구시스템과학_진(4)': { required: '지구과학_일(4)', semester: 'semester-2-2' },
-  '행성우주과학_진(4)': { required: '지구과학_일(4)', semester: 'semester-2-2' }
+  '전자기와 양자': { required: '물리학', semester: 'semester-2-1' },
+  '역학과 에너지': { required: '물리학', semester: 'semester-2-1' },
+  '생물의 유전': { required: '생명과학', semester: 'semester-2-1' },
+  '세포와 물질대사': { required: '생명과학', semester: 'semester-2-1' },
+  '물질과 에너지': { required: '화학', semester: 'semester-2-2' },
+  '화학반응의 세계': { required: '화학', semester: 'semester-2-2' },
+  '지구시스템과학': { required: '지구과학', semester: 'semester-2-2' },
+  '행성우주과학': { required: '지구과학', semester: 'semester-2-2' }
 };
 
 // ✅ 특정 과목의 선수 과목 검사 함수 (과목 선택 시점에 호출)
 function hasPrerequisite(courseText) {
-  if (!coursePrerequisites[courseText]) {
+  const courseName = getCourseName(courseText);
+  const prereq = coursePrerequisites[courseName];
+
+  // 선수 과목이 필요 없는 과목이면 바로 통과
+  if (!prereq) {
     return { valid: true };
   }
 
-  const prereq = coursePrerequisites[courseText];
-  const selectedCourses = new Set();
-  
-  // 모든 바구니에서 선택된 과목 수집
+  // 모든 바구니에서 선택된 과목명을 수집
+  const selectedCourseNames = new Set();
   document.querySelectorAll('.basket .course-item').forEach(item => {
-    selectedCourses.add(item.textContent);
+    selectedCourseNames.add(getCourseName(item.textContent));
   });
 
-  if (!selectedCourses.has(prereq.required)) {
+  // 선수 과목을 선택하지 않은 경우 경고
+  if (!selectedCourseNames.has(prereq.required)) {
+    const semesterName = semesterLabels[prereq.semester] || '선수 과목 개설 학기';
+
     return {
       valid: false,
-      message: `2학년 1학기 '${prereq.required.split('_')[0]}'을 선택해야 '${courseText.split('_')[0]}'을 수강할 수 있습니다.`
+      message: `${semesterName} '${prereq.required}'을 선택해야 '${courseName}'을 수강할 수 있습니다.`
     };
   }
 
