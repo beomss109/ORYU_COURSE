@@ -732,7 +732,35 @@ function updateTotalAreaSummary() {
   }
 }
 
+// ✅ 진로과목 선택 개수 계산 함수
+function getCareerSubjectCounts() {
+  const counts = {
+    korean: 0,
+    math: 0,
+    english: 0,
+    society: 0,
+    science: 0
+  };
 
+  // 현재 최종 선택된 과목 전체(고정과목 + 바구니 선택과목)
+  const allCourses = document.querySelectorAll('.basket .course-item, .course-item.fixed');
+
+  allCourses.forEach(el => {
+    const text = el.textContent.trim();
+
+    // "_진(" 이 들어간 과목만 진로과목으로 판단
+    const isCareer = /_진\(\d+\)/.test(text);
+    if (!isCareer) return;
+
+    if (el.classList.contains('course-korean')) counts.korean++;
+    if (el.classList.contains('course-math')) counts.math++;
+    if (el.classList.contains('course-english')) counts.english++;
+    if (el.classList.contains('course-society')) counts.society++;
+    if (el.classList.contains('course-science')) counts.science++;
+  });
+
+  return counts;
+}
 
 window.onload = () => {
   attachClickHandlers();
@@ -872,6 +900,51 @@ if (etcCredits < 12) {
 
   titleSection.appendChild(header);
   titleSection.appendChild(info);
+  // ✅ 진로과목 선택 개수 요약 박스 추가
+const careerCounts = getCareerSubjectCounts();
+
+const careerBox = document.createElement('div');
+careerBox.style.marginTop = '10px';
+careerBox.style.padding = '8px 10px';
+careerBox.style.background = '#f5f7fa';
+careerBox.style.border = '1px solid #d9dee5';
+careerBox.style.borderRadius = '8px';
+careerBox.style.fontSize = '12px';
+careerBox.style.lineHeight = '1.6';
+
+const careerTitle = document.createElement('p');
+careerTitle.textContent = '📊 진로과목 선택 현황';
+careerTitle.style.margin = '0 0 6px 0';
+careerTitle.style.fontWeight = 'bold';
+careerTitle.style.fontSize = '13px';
+
+const careerList = document.createElement('div');
+careerList.style.display = 'flex';
+careerList.style.flexWrap = 'wrap';
+careerList.style.gap = '8px';
+
+const careerItems = [
+  `국어 진로과목: ${careerCounts.korean}개`,
+  `수학 진로과목: ${careerCounts.math}개`,
+  `영어 진로과목: ${careerCounts.english}개`,
+  `사회 진로과목: ${careerCounts.society}개`,
+  `과학 진로과목: ${careerCounts.science}개`
+];
+
+careerItems.forEach(text => {
+  const item = document.createElement('span');
+  item.textContent = text;
+  item.style.background = '#ffffff';
+  item.style.border = '1px solid #cfd8dc';
+  item.style.borderRadius = '6px';
+  item.style.padding = '4px 8px';
+  item.style.whiteSpace = 'nowrap';
+  careerList.appendChild(item);
+});
+
+careerBox.appendChild(careerTitle);
+careerBox.appendChild(careerList);
+titleSection.appendChild(careerBox);
   capture.appendChild(titleSection);
 
   Object.keys(semesterConfigs).forEach(id => {
