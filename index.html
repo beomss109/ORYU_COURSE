@@ -441,8 +441,13 @@ const coursePrerequisites = {
   '행성우주과학_진(4)': { required: '지구과학_일(4)', semester: 'semester-2-2' }
 };
 
-// ✅ 선수 과목 검사 함수
-function checkPrerequisites() {
+// ✅ 특정 과목의 선수 과목 검사 함수 (과목 선택 시점에 호출)
+function hasPrerequisite(courseText) {
+  if (!coursePrerequisites[courseText]) {
+    return { valid: true };
+  }
+
+  const prereq = coursePrerequisites[courseText];
   const selectedCourses = new Set();
   
   // 모든 바구니에서 선택된 과목 수집
@@ -450,17 +455,11 @@ function checkPrerequisites() {
     selectedCourses.add(item.textContent);
   });
 
-  // 각 과목의 선수 조건 확인
-  for (const course of selectedCourses) {
-    if (coursePrerequisites[course]) {
-      const prereq = coursePrerequisites[course];
-      if (!selectedCourses.has(prereq.required)) {
-        return {
-          valid: false,
-          message: `2학년 1학기 '${prereq.required.split('_')[0]}'을 선택해야 '${course.split('_')[0]}'을 수강할 수 있습니다.`
-        };
-      }
-    }
+  if (!selectedCourses.has(prereq.required)) {
+    return {
+      valid: false,
+      message: `2학년 1학기 '${prereq.required.split('_')[0]}'을 선택해야 '${courseText.split('_')[0]}'을 수강할 수 있습니다.`
+    };
   }
 
   return { valid: true };
@@ -494,6 +493,12 @@ function handleCourseClick(item) {
     return;
   }
 
+  // ✅ 과목 선택 시점에 선수 과목 검사
+  const prerequisiteCheck = hasPrerequisite(courseText);
+  if (!prerequisiteCheck.valid) {
+    alert(prerequisiteCheck.message);
+    return;
+  }
 
   const courseArea = item.closest('.course-area');
   const areaTitleText = courseArea?.querySelector('.area-title')?.textContent.trim();
@@ -729,13 +734,6 @@ document.getElementById('save-btn').onclick = () => {
   const isActive = document.getElementById('save-btn').dataset.active === 'true';
   if (!isActive) {
     alert('조건이 충족되지 않았습니다.');
-    return;
-  }
-
-  // ✅ 선수 과목 검사 추가
-  const prerequisiteCheck = checkPrerequisites();
-  if (!prerequisiteCheck.valid) {
-    alert(prerequisiteCheck.message);
     return;
   }
 
