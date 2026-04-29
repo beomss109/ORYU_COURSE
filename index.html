@@ -195,6 +195,7 @@
   <ul>
     <li>1. 국어, 수학, 영어 영역의 과목 신청 총합은 <strong>57학점</strong>을 초과할 수 없습니다.</li>
     <li>2. 제2외국어, 정보, 교양 영역의 과목 신청 총합은 <strong>12학점 이상</strong> 신청해야 합니다.</li>
+    <li>3. <strong>선수 과목</strong>을 먼저 이수해야 상위 과목을 선택할 수 있습니다.</li>
   </ul>
 </div>
 <div class="legend">
@@ -427,6 +428,43 @@ const courseLimits = {
   'semester-2-1-선택과목3': 1,
   'semester-3-1-선택과목1': 4,
   };
+
+// ✅ 선수 과목 위계 정의
+const coursePrerequisites = {
+  '전자기와 양자_진(4)': { required: '물리학_일(4)', semester: 'semester-2-1' },
+  '역학과 에너지_진(4)': { required: '물리학_일(4)', semester: 'semester-2-1' },
+  '생물의 유전_진(4)': { required: '생명과학_일(4)', semester: 'semester-2-1' },
+  '세포와 물질대사_진(4)': { required: '생명과학_일(4)', semester: 'semester-2-1' },
+  '물질과 에너지_진(4)': { required: '화학_일(4)', semester: 'semester-2-2' },
+  '화학반응의 세계_진(4)': { required: '화학_일(4)', semester: 'semester-2-2' },
+  '지구시스템과학_진(4)': { required: '지구과학_일(4)', semester: 'semester-2-2' },
+  '행성우주과학_진(4)': { required: '지구과학_일(4)', semester: 'semester-2-2' }
+};
+
+// ✅ 선수 과목 검사 함수
+function checkPrerequisites() {
+  const selectedCourses = new Set();
+  
+  // 모든 바구니에서 선택된 과목 수집
+  document.querySelectorAll('.basket .course-item').forEach(item => {
+    selectedCourses.add(item.textContent);
+  });
+
+  // 각 과목의 선수 조건 확인
+  for (const course of selectedCourses) {
+    if (coursePrerequisites[course]) {
+      const prereq = coursePrerequisites[course];
+      if (!selectedCourses.has(prereq.required)) {
+        return {
+          valid: false,
+          message: `2학년 1학기 '${prereq.required.split('_')[0]}'을 선택해야 '${course.split('_')[0]}'을 수강할 수 있습니다.`
+        };
+      }
+    }
+  }
+
+  return { valid: true };
+}
 
 function attachClickHandlers() {
   document.querySelectorAll('.course-item').forEach(item => {
@@ -693,6 +731,14 @@ document.getElementById('save-btn').onclick = () => {
     alert('조건이 충족되지 않았습니다.');
     return;
   }
+
+  // ✅ 선수 과목 검사 추가
+  const prerequisiteCheck = checkPrerequisites();
+  if (!prerequisiteCheck.valid) {
+    alert(prerequisiteCheck.message);
+    return;
+  }
+
   // 전체 저장 로직 내용이 여기에 있어야 해!
 
   const countedTexts = new Set();
