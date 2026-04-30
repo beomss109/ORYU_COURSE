@@ -487,6 +487,38 @@ function hasPrerequisite(courseText) {
   return { valid: true };
 }
 
+  // ✅ 현재 선택 상태 전체의 선수과목 위계 검사 함수
+// excludeElement를 넣으면, 해당 과목을 삭제했다고 가정하고 검사합니다.
+function getPrerequisiteWarnings(excludeElement = null) {
+  const selectedElements = Array.from(
+    document.querySelectorAll('.basket .course-item, .course-item.fixed')
+  ).filter(el => el !== excludeElement);
+
+  const selectedCourseNames = new Set();
+
+  selectedElements.forEach(item => {
+    selectedCourseNames.add(getCourseName(item.textContent));
+  });
+
+  const warnings = [];
+
+  selectedElements.forEach(item => {
+    const courseName = getCourseName(item.textContent);
+    const prereq = coursePrerequisites[courseName];
+
+    if (!prereq) return;
+
+    if (!selectedCourseNames.has(prereq.required)) {
+      const semesterName = semesterLabels[prereq.semester] || '선수 과목 개설 학기';
+
+      warnings.push(
+        `${semesterName} '${prereq.required}'을 선택해야 '${courseName}'을 수강할 수 있습니다.`
+      );
+    }
+  });
+
+  return warnings;
+}
 function attachClickHandlers() {
   document.querySelectorAll('.course-item').forEach(item => {
     if (!item.classList.contains('fixed')) {
@@ -619,12 +651,24 @@ if (semesterId === 'semester-3-2' && areaTitle === '선택과목1') {
   cloned.setAttribute('data-area', dynamicKey);
 
   // ✅ 삭제 이벤트 추가
-  cloned.onclick = () => {
-    cloned.remove();
-    checkCredit(semesterId);
-    updateTotalAreaSummary();
-    updateSaveButtonVisibility(); // ✅ 과목 삭제 시에도 버튼 다시 판단
-  };
+ cloned.onclick = () => {
+  // ✅ 이 과목을 삭제했을 때 선수과목 위계가 깨지는지 먼저 검사
+  const warningsAfterDelete = getPrerequisiteWarnings(cloned);
+
+  if (warningsAfterDelete.length > 0) {
+    alert(
+      `이 과목을 취소하면 선수과목 위계가 깨집니다.\n\n` +
+      `${warningsAfterDelete[0]}\n\n` +
+      `먼저 상위 과목을 취소한 뒤 선수 과목을 취소하세요.`
+    );
+    return;
+  }
+
+  cloned.remove();
+  checkCredit(semesterId);
+  updateTotalAreaSummary();
+  updateSaveButtonVisibility(); // ✅ 과목 삭제 시에도 버튼 다시 판단
+};
 
   basket.appendChild(cloned);
 
@@ -788,7 +832,16 @@ document.getElementById('save-btn').onclick = () => {
   }
 
   // 전체 저장 로직 내용이 여기에 있어야 해!
+  // ✅ 저장 직전 선수과목 위계 최종 검사
+  const prerequisiteWarnings = getPrerequisiteWarnings();
 
+  if (prerequisiteWarnings.length > 0) {
+    alert(
+      `선수과목 위계 조건이 충족되지 않았습니다.\n\n` +
+      prerequisiteWarnings.join('\n')
+    );
+    return;
+  }
   const countedTexts = new Set();
 
   const totalCoreCredits = Array.from(document.querySelectorAll('.basket .course-item, .course-item.fixed')).reduce((acc, el) => {
