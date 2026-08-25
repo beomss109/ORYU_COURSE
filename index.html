@@ -225,7 +225,8 @@
   <ul>
     <li>1. 국어, 수학, 영어 영역의 이수 학점 총합은 <strong>81학점</strong>을 초과할 수 없습니다.</li>
     <li class="sub-notice">※ 1학년 공통국어1·2, 공통수학1·2, 공통영어1·2에서 각 학기 12학점씩, 총 24학점을 이수한 것으로 포함하여 계산합니다.</li>
-    <li>2. 제2외국어, 정보, 교양 영역의 과목 신청 총합은 <strong>12학점 이상</strong> 신청해야 합니다.</li>
+    <li>2. 제2외국어, 정보, 교양 영역의 이수 학점 총합은 <strong>16학점 이상</strong>이어야 합니다.</li>
+    <li class="sub-notice">※ 1학년 때 정보 또는 한문 중 한 과목 4학점을 이수한 것으로 포함하여 계산합니다.</li>
   </ul>
 </div>
 <div class="legend">
@@ -422,7 +423,8 @@
   <h3>🧮 영역별 총합 계산기</h3>
   <p id="summary-core">국어/수학/영어 영역 총합(1학년 포함): <strong>24</strong>학점</p>
   <p class="summary-note">※ 1학년 공통과목 이수 학점 24학점(각 학기 12학점)을 포함한 값입니다.</p>
-  <p id="summary-others">제2외국어/정보/교양 영역 총합: <strong>0</strong>학점</p>
+  <p id="summary-others">제2외국어/정보/교양 영역 총합(1학년 포함): <strong>4</strong>학점</p>
+  <p class="summary-note">※ 1학년 정보 또는 한문 이수 학점 4학점을 포함한 값입니다.</p>
 </div>
 <script>
   const domainOrder = [
@@ -456,6 +458,8 @@ const semesterConfigs = {
 
 const FIRST_YEAR_CORE_CREDITS = 24;
 const CORE_CREDIT_LIMIT = 81;
+const FIRST_YEAR_OTHER_CREDITS = 4;
+const OTHER_CREDIT_MINIMUM = 16;
 
 const courseLimits = {
   '선택과목1': 3,
@@ -677,7 +681,7 @@ function updateSaveButtonVisibility() {
 function updateTotalAreaSummary() {
   const allCourses = document.querySelectorAll('.basket .course-item, .course-item.fixed');
   let coreSum = FIRST_YEAR_CORE_CREDITS;
-  let othersSum = 0;
+  let othersSum = FIRST_YEAR_OTHER_CREDITS;
 
   allCourses.forEach(el => {
     const credit = parseInt(el.textContent.match(/\((\d+)\)/)?.[1] || '0');
@@ -698,11 +702,11 @@ function updateTotalAreaSummary() {
   });
 
   document.getElementById('summary-core').innerHTML = `국어/수학/영어 영역 총합(1학년 포함): <strong>${coreSum}</strong>학점`;
-  document.getElementById('summary-others').innerHTML = `제2외국어/정보/교양 영역 총합: <strong>${othersSum}</strong>학점`;
+  document.getElementById('summary-others').innerHTML = `제2외국어/정보/교양 영역 총합(1학년 포함): <strong>${othersSum}</strong>학점`;
 
   // ✅ 조건 만족 시 연두색 유지, 그렇지 않으면 색 제거
   const summaryBox = document.getElementById('summary-totals');
-  if (coreSum <= CORE_CREDIT_LIMIT && othersSum >= 12) {
+  if (coreSum <= CORE_CREDIT_LIMIT && othersSum >= OTHER_CREDIT_MINIMUM) {
     summaryBox.style.backgroundColor = '#e8f5e9'; // 연두 배경
     summaryBox.style.border = '2px solid #4CAF50'; // 녹색 테두리
     summaryBox.style.color = '#2e7d32'; // 녹색 글자
@@ -813,10 +817,10 @@ document.getElementById('save-btn').onclick = () => {
       return acc + credit;
     }
     return acc;
-  }, 0);
+  }, FIRST_YEAR_OTHER_CREDITS);
 
-if (etcCredits < 12) {
-  alert('제2외국어, 정보, 교양 영역의 신청 총합은 12학점 이상이어야 합니다.');
+if (etcCredits < OTHER_CREDIT_MINIMUM) {
+  alert('1학년 정보 또는 한문 4학점을 포함한 제2외국어, 정보, 교양 영역의 이수 학점 총합은 16학점 이상이어야 합니다.');
 
   // 빨간 테두리 표시
   document.querySelectorAll('.course-language, .course-info, .course-liberal').forEach(el => {
