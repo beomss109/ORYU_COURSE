@@ -54,6 +54,24 @@
   .course-item.fixed {
     cursor: not-allowed;
   }
+  .course-item.closed {
+    background-color: #e0e0e0 !important;
+    color: #777;
+    cursor: not-allowed;
+    opacity: 0.8;
+    border: 1px solid #bdbdbd;
+  }
+  .course-item.closed::after {
+    content: '폐강';
+    margin-left: 6px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background-color: #757575;
+    color: #fff;
+    font-size: 10px;
+    text-decoration: none;
+    display: inline-block;
+  }
   .basket {
     border: 2px dashed #aaa;
     border-radius: 8px;
@@ -153,6 +171,12 @@
   margin-bottom: 6px;
   line-height: 1.5;
 }
+.notice-box .sub-notice {
+  list-style: none;
+  margin-left: 8px;
+  color: #6d4c41;
+  font-size: 13px;
+}
 .total-summary-box {
   max-width: 800px;
   margin: 40px auto 0;
@@ -174,6 +198,12 @@
   margin: 4px 0;
   font-weight: bold;
 }
+.total-summary-box .summary-note {
+  margin: 2px 0 8px;
+  color: #555;
+  font-size: 12px;
+  font-weight: normal;
+}
 .red-outline {
   outline: 2px solid red !important;
   outline-offset: -2px;
@@ -193,7 +223,8 @@
 <div class="notice-box">
   <h3>📌 신청 시 유의사항</h3>
   <ul>
-    <li>1. 국어, 수학, 영어 영역의 과목 신청 총합은 <strong>57학점</strong>을 초과할 수 없습니다.</li>
+    <li>1. 국어, 수학, 영어 영역의 이수 학점 총합은 <strong>81학점</strong>을 초과할 수 없습니다.</li>
+    <li class="sub-notice">※ 1학년 공통국어1·2, 공통수학1·2, 공통영어1·2에서 각 학기 12학점씩, 총 24학점을 이수한 것으로 포함하여 계산합니다.</li>
     <li>2. 제2외국어, 정보, 교양 영역의 과목 신청 총합은 <strong>12학점 이상</strong> 신청해야 합니다.</li>
   </ul>
 </div>
@@ -208,6 +239,7 @@
   <div class="legend-item" style="background-color:#b2dfdb;">정보</div>
   <div class="legend-item" style="background-color:#e1bee7;">제2외국어</div>
   <div class="legend-item" style="background-color:#e4dcd9;">교양</div>
+  <div class="legend-item" style="background-color:#e0e0e0; color:#777;">폐강(선택 불가)</div>
 </div>
   <div class="footer">made by 김민범&이현우선생님</div>
 
@@ -316,7 +348,7 @@
         <div class="area-title">선택과목1 (4개 선택)</div>
         <div class="course-list">
           <div class="course-item course-korean">문학과 영상_진(4)</div>
-          <div class="course-item course-korean">매체 의사소통_융(4)</div>
+          <div class="course-item closed course-korean" aria-disabled="true" title="폐강 과목(선택 불가)">매체 의사소통_진(4)</div>
           <div class="course-item course-math">미적분Ⅱ_진(4)</div>
           <div class="course-item course-english">영어독해와 작문_진(4)</div>
           <div class="course-item course-english">영미문학읽기_진(4)</div>
@@ -328,7 +360,8 @@
           <div class="course-item course-science">물질과 에너지_진(4)</div>
           <div class="course-item course-science">화학반응의 세계_진(4)</div>
           <div class="course-item course-science">세포와 물질대사_진(4)</div>
-          <div class="course-item course-science">지구시스템과학_진(4)</div>
+          <div class="course-item closed course-science" aria-disabled="true" title="폐강 과목(선택 불가)">지구시스템과학_진(4)</div>
+          <div class="course-item closed course-science" aria-disabled="true" title="폐강 과목(선택 불가)">행성우주과학_진(4)</div>
           <div class="course-item course-physical">심화체육전공실기_진(4)</div>
           <div class="course-item course-info">인공지능 기초_진(4)</div>
           <div class="course-item course-language">심화 일본어_진(4)</div>
@@ -387,8 +420,9 @@
 </div>
 <div id="summary-totals" class="total-summary-box">
   <h3>🧮 영역별 총합 계산기</h3>
-  <p id="summary-core">국어/수학/영어 영역 총합: <strong>0</strong>점</p>
-  <p id="summary-others">제2외국어/정보/교양 영역 총합: <strong>0</strong>점</p>
+  <p id="summary-core">국어/수학/영어 영역 총합(1학년 포함): <strong>24</strong>학점</p>
+  <p class="summary-note">※ 1학년 공통과목 이수 학점 24학점(각 학기 12학점)을 포함한 값입니다.</p>
+  <p id="summary-others">제2외국어/정보/교양 영역 총합: <strong>0</strong>학점</p>
 </div>
 <script>
   const domainOrder = [
@@ -420,6 +454,9 @@ const semesterConfigs = {
   'semester-3-2': 26
 };
 
+const FIRST_YEAR_CORE_CREDITS = 24;
+const CORE_CREDIT_LIMIT = 81;
+
 const courseLimits = {
   '선택과목1': 3,
   '선택과목2': 1,
@@ -440,13 +477,15 @@ const semesterLabels = {
 
 function attachClickHandlers() {
   document.querySelectorAll('.course-item').forEach(item => {
-    if (!item.classList.contains('fixed')) {
+    if (!item.classList.contains('fixed') && !item.classList.contains('closed')) {
       item.onclick = () => handleCourseClick(item);
     }
   });
 }
 
 function handleCourseClick(item) {
+  if (item.classList.contains('closed')) return;
+
   const courseText = item.textContent;
   const semesterEl = item.closest('.semester');
   const semesterId = semesterEl.id;
@@ -637,7 +676,7 @@ function updateSaveButtonVisibility() {
 
 function updateTotalAreaSummary() {
   const allCourses = document.querySelectorAll('.basket .course-item, .course-item.fixed');
-  let coreSum = 0;
+  let coreSum = FIRST_YEAR_CORE_CREDITS;
   let othersSum = 0;
 
   allCourses.forEach(el => {
@@ -658,12 +697,12 @@ function updateTotalAreaSummary() {
     }
   });
 
-  document.getElementById('summary-core').innerHTML = `국어/수학/영어 영역 총합: <strong>${coreSum}</strong>점`;
-  document.getElementById('summary-others').innerHTML = `제2외국어/정보/교양 영역 총합: <strong>${othersSum}</strong>점`;
+  document.getElementById('summary-core').innerHTML = `국어/수학/영어 영역 총합(1학년 포함): <strong>${coreSum}</strong>학점`;
+  document.getElementById('summary-others').innerHTML = `제2외국어/정보/교양 영역 총합: <strong>${othersSum}</strong>학점`;
 
   // ✅ 조건 만족 시 연두색 유지, 그렇지 않으면 색 제거
   const summaryBox = document.getElementById('summary-totals');
-  if (coreSum <= 57 && othersSum >= 12) {
+  if (coreSum <= CORE_CREDIT_LIMIT && othersSum >= 12) {
     summaryBox.style.backgroundColor = '#e8f5e9'; // 연두 배경
     summaryBox.style.border = '2px solid #4CAF50'; // 녹색 테두리
     summaryBox.style.color = '#2e7d32'; // 녹색 글자
@@ -674,9 +713,9 @@ function updateTotalAreaSummary() {
   }
 }
 
-// ✅ 진로과목 선택 개수 계산 함수
-function getCareerSubjectCounts() {
-  const counts = {
+// 선택한 일반·진로·융합 과목을 모두 포함한 교과별 이수 학점
+function getSubjectCreditTotals() {
+  const totals = {
     korean: 0,
     math: 0,
     english: 0,
@@ -688,20 +727,15 @@ function getCareerSubjectCounts() {
   const allCourses = document.querySelectorAll('.basket .course-item, .course-item.fixed');
 
   allCourses.forEach(el => {
-    const text = el.textContent.trim();
-
-    // "_진(" 이 들어간 과목만 진로과목으로 판단
-    const isCareer = /_진\(\d+\)/.test(text);
-    if (!isCareer) return;
-
-    if (el.classList.contains('course-korean')) counts.korean++;
-    if (el.classList.contains('course-math')) counts.math++;
-    if (el.classList.contains('course-english')) counts.english++;
-    if (el.classList.contains('course-society')) counts.society++;
-    if (el.classList.contains('course-science')) counts.science++;
+    const credit = parseInt(el.textContent.match(/\((\d+)\)/)?.[1] || '0');
+    if (el.classList.contains('course-korean')) totals.korean += credit;
+    if (el.classList.contains('course-math')) totals.math += credit;
+    if (el.classList.contains('course-english')) totals.english += credit;
+    if (el.classList.contains('course-society')) totals.society += credit;
+    if (el.classList.contains('course-science')) totals.science += credit;
   });
 
-  return counts;
+  return totals;
 }
 
 window.onload = () => {
@@ -748,10 +782,10 @@ document.getElementById('save-btn').onclick = () => {
       }
     }
     return acc;
-  }, 0);
+  }, FIRST_YEAR_CORE_CREDITS);
 
-  if (totalCoreCredits > 57) {
-  alert('국어, 수학, 영어 영역의 신청 총합은 57점을 초과할 수 없습니다.');
+  if (totalCoreCredits > CORE_CREDIT_LIMIT) {
+  alert('1학년 공통과목 24학점을 포함한 국어, 수학, 영어 영역의 이수 학점 총합은 81학점을 초과할 수 없습니다.');
 
   // 파란 테두리 추가
   document.querySelectorAll('.course-korean, .course-math, .course-english').forEach(el => {
@@ -782,7 +816,7 @@ document.getElementById('save-btn').onclick = () => {
   }, 0);
 
 if (etcCredits < 12) {
-  alert('제2외국어, 정보, 교양 영역의 신청 총합은 12점 이상이어야 합니다.');
+  alert('제2외국어, 정보, 교양 영역의 신청 총합은 12학점 이상이어야 합니다.');
 
   // 빨간 테두리 표시
   document.querySelectorAll('.course-language, .course-info, .course-liberal').forEach(el => {
@@ -842,8 +876,8 @@ if (etcCredits < 12) {
 
   titleSection.appendChild(header);
   titleSection.appendChild(info);
-  // ✅ 진로과목 선택 개수 요약 박스 추가
-const careerCounts = getCareerSubjectCounts();
+  // 일반·진로·융합 과목을 모두 포함한 교과별 학점 요약
+const subjectCreditTotals = getSubjectCreditTotals();
 
 const careerBox = document.createElement('div');
 careerBox.style.marginTop = '10px';
@@ -855,7 +889,7 @@ careerBox.style.fontSize = '12px';
 careerBox.style.lineHeight = '1.6';
 
 const careerTitle = document.createElement('p');
-careerTitle.textContent = '📊 진로과목 선택 현황';
+careerTitle.textContent = '📊 교과별 이수 학점(2·3학년)';
 careerTitle.style.margin = '0 0 6px 0';
 careerTitle.style.fontWeight = 'bold';
 careerTitle.style.fontSize = '13px';
@@ -866,11 +900,11 @@ careerList.style.flexWrap = 'wrap';
 careerList.style.gap = '8px';
 
 const careerItems = [
-  `국어 진로과목: ${careerCounts.korean}개`,
-  `수학 진로과목: ${careerCounts.math}개`,
-  `영어 진로과목: ${careerCounts.english}개`,
-  `사회 진로과목: ${careerCounts.society}개`,
-  `과학 진로과목: ${careerCounts.science}개`
+  `국어: ${subjectCreditTotals.korean}학점`,
+  `수학: ${subjectCreditTotals.math}학점`,
+  `영어: ${subjectCreditTotals.english}학점`,
+  `사회: ${subjectCreditTotals.society}학점`,
+  `과학: ${subjectCreditTotals.science}학점`
 ];
 
 careerItems.forEach(text => {
@@ -958,7 +992,7 @@ if (selectedCourses.length > 0) {
 
 // ✅ 미선택 과목
 const allSelectable = Array.from(sem.querySelectorAll('.course-area:not(:first-child) .course-item'))
-  .filter(el => !el.classList.contains('fixed'));
+  .filter(el => !el.classList.contains('fixed') && !el.classList.contains('closed'));
 const unselectedCourses = allSelectable.filter(el =>
   !selectedCourses.some(sel => sel.textContent === el.textContent)
 );
