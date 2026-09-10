@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="오류고등학교 입학년도별 과목 선택 수강신청 시뮬레이터">
-  <meta name="theme-color" content="#0b2b32">
+  <meta name="theme-color" content="#f7f9fb">
   <title>오류고등학교 수강신청 시뮬레이터</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20260910-ui2">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./app.js?v=20260910-ui2"></script>
 </head>
 <body class="choosing-year">
   <main>
@@ -67,11 +67,10 @@
       <footer class="app-footer">made by 김민범&amp;이현우선생님</footer>
       <div class="save-bar">
         <p id="save-status" role="status"></p>
-        <button type="button" id="save-btn" class="primary-button" aria-disabled="true">결과 이미지 저장</button>
+        <button type="button" id="save-btn" class="primary-button" data-ready="false">결과 이미지 저장</button>
       </div>
     </section>
   </main>
-  <p id="feedback" class="feedback" role="alert" hidden></p>
   <noscript><p class="noscript-message">시뮬레이터를 사용하려면 브라우저에서 JavaScript를 허용해 주세요.</p></noscript>
 </body>
 </html>

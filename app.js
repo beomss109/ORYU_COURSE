@@ -2,15 +2,16 @@ import data2025 from './data/2025.js';
 import data2026 from './data/2026.js';
 import {
   SUBJECTS, courseLabel, createDraft, getCreditTotals, getSemesterStatus,
-  selectionError, validateSelection, getExportModel, selectedCourses, sortBySubject
-} from './engine.js';
-import { saveResultImage } from './export.js';
+  selectionError, validateSelection, getExportModel, selectedCourses, sortBySubject,
+  getAreaWarnings, getSaveWarning
+} from './engine.js?v=20260910-ui2';
+import { saveResultImage } from './export.js?v=20260910-ui2';
 
 const admissionData = new Map([[2026, data2026], [2025, data2025]]);
 const drafts = new Map(); // 탭을 열어 둔 동안만 유지하며, 학생 정보를 외부에 전송하지 않습니다.
 let activeYear = null;
 let saving = false;
-let feedbackTimer;
+let showAreaWarnings = false;
 const $ = id => document.getElementById(id);
 const currentConfig = () => admissionData.get(activeYear);
 const currentDraft = () => drafts.get(activeYear);
@@ -23,15 +24,25 @@ function node(tag, className, text) {
 }
 
 function feedback(message) {
-  clearTimeout(feedbackTimer);
-  $('feedback').textContent = message;
-  $('feedback').hidden = false;
-  feedbackTimer = setTimeout(() => { $('feedback').hidden = true; }, 6500);
+  // 경고를 읽기 전에 사라지지 않도록 기존의 확인형 알림창을 사용합니다.
+  window.alert(message);
+}
+
+function syncAreaWarning() {
+  const warning = showAreaWarnings ? getAreaWarnings(currentConfig(), currentDraft().selected)[0] : null;
+  $('semesters').querySelectorAll('.course-item').forEach(element => {
+    const matches = warning && !element.classList.contains('closed') &&
+      warning.domains.some(domain => element.classList.contains(`course-${domain}`));
+    element.classList.toggle('credit-warning', Boolean(matches));
+  });
+  $('summary-core').classList.toggle('credit-warning-summary', warning?.area === 'core');
+  $('summary-others').classList.toggle('credit-warning-summary', warning?.area === 'others');
 }
 
 function openYear(year) {
   if (saving || !admissionData.has(year)) return;
   activeYear = year;
+  showAreaWarnings = false;
   if (!drafts.has(year)) drafts.set(year, createDraft());
   const config = currentConfig();
   const { student } = currentDraft();
@@ -42,7 +53,7 @@ function openYear(year) {
   document.title = `오류고등학교 ${year}학년도 입학생 수강신청 시뮬레이터`;
   $('core-limit').textContent = `${config.rules.coreLimit}학점`;
   $('other-minimum').textContent = `${config.rules.otherMinimum}학점 이상`;
-  const firstYearCore = Object.values(config.rules.firstYearSubjects).reduce((sum, credit) => sum + credit, 0);
+  const firstYearCore = ['korean', 'math', 'english'].reduce((sum, subject) => sum + (config.rules.firstYearSubjects[subject] || 0), 0);
   $('core-note').textContent = `※ 1학년 공통국어1·2, 공통수학1·2, 공통영어1·2 각 ${config.rules.firstYearSubjects.korean}학점, 총 ${firstYearCore}학점을 포함합니다.`;
   $('other-note').textContent = `※ 1학년 정보 또는 한문 중 한 과목 ${config.rules.firstYearOthers}학점을 포함합니다.`;
   $('summary-core-note').textContent = `※ 1학년 국어·수학·영어 ${firstYearCore}학점 + 2·3학년 필수·선택 과목 학점`;
@@ -51,7 +62,6 @@ function openYear(year) {
   updateSummary();
   $('year-picker').hidden = true;
   $('simulator').hidden = false;
-  $('feedback').hidden = true;
   document.body.classList.remove('choosing-year');
   window.scrollTo(0, 0);
   $('simulator-title').focus({ preventScroll: true });
@@ -138,12 +148,15 @@ function updateSummary() {
   const errors = validateSelection(config, draft.selected);
   const complete = config.semesters.filter(semester => getSemesterStatus(semester, draft.selected).complete).length;
   const ready = !errors.length && !!draft.student.id.trim() && !!draft.student.name.trim();
-  $('save-btn').setAttribute('aria-disabled', String(!ready || saving));
+  // 조건 미충족 상태에서도 버튼을 누르면 이유를 안내합니다. 실제 비활성화는 저장 중에만 적용합니다.
+  $('save-btn').dataset.ready = String(ready);
+  $('save-btn').setAttribute('aria-disabled', String(saving));
   if (saving) $('save-status').textContent = '결과 이미지를 만드는 중입니다.';
   else if (complete < config.semesters.length) $('save-status').textContent = `학기별 선택 ${complete} / ${config.semesters.length} 완료 · 모든 조건 충족 후 저장 가능`;
   else if (errors.length) $('save-status').textContent = '학기 선택 완료 · 영역별 학점 조건을 확인해 주세요.';
   else if (!ready) $('save-status').textContent = '선택 조건 충족 · 학번과 이름을 입력해 주세요.';
   else $('save-status').textContent = `${activeYear}학년도 입학생 · 저장할 준비가 되었습니다.`;
+  syncAreaWarning();
 }
 
 $('semesters').addEventListener('click', event => {
@@ -163,7 +176,6 @@ $('semesters').addEventListener('click', event => {
   }
   refreshSemester(semester);
   updateSummary();
-  $('feedback').hidden = true;
   if (removing) $(`semester-${semester.id}`).querySelector(`[data-action="select"][data-course-id="${courseId}"]`)?.focus({ preventScroll: true });
 });
 
@@ -179,7 +191,8 @@ $('change-year').addEventListener('click', () => {
   if (saving) return;
   $('simulator').hidden = true;
   $('year-picker').hidden = false;
-  $('feedback').hidden = true;
+  showAreaWarnings = false;
+  syncAreaWarning();
   document.body.classList.add('choosing-year');
   document.title = '오류고등학교 수강신청 시뮬레이터';
   window.scrollTo(0, 0);
@@ -188,8 +201,10 @@ $('change-year').addEventListener('click', () => {
 
 $('save-btn').addEventListener('click', async () => {
   if (saving || !activeYear) return;
-  const errors = validateSelection(currentConfig(), currentDraft().selected);
-  if (errors.length) return feedback(errors[0]);
+  showAreaWarnings = true;
+  syncAreaWarning();
+  const warning = getSaveWarning(currentConfig(), currentDraft().selected);
+  if (warning) return feedback(warning.message);
   if (!currentDraft().student.id.trim() || !currentDraft().student.name.trim()) {
     feedback('학번과 이름을 입력해 주세요.');
     (!currentDraft().student.id.trim() ? $('studentId') : $('studentName')).focus();

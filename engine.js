@@ -51,6 +51,43 @@ export function getCreditTotals(config, selected) {
   };
 }
 
+// 저장 경고와 화면 테두리는 같은 계산 결과를 사용합니다. 과거 경고를 누적하지 않습니다.
+export function getAreaWarnings(config, selected) {
+  const totals = getCreditTotals(config, selected);
+  const warnings = [];
+  if (totals.core > config.rules.coreLimit) warnings.push({
+    area: 'core', domains: CORE,
+    message: `국어·수학·영어 이수 학점이 ${totals.core}학점으로, ${config.rules.coreLimit}학점을 초과했습니다.\n\n1학년 공통과목 학점이 포함된 값입니다.\n빨간 테두리로 표시된 국어·수학·영어 선택 과목을 조정해 주세요.`
+  });
+  if (totals.others < config.rules.otherMinimum) warnings.push({
+    area: 'others', domains: OTHERS,
+    message: `제2외국어·정보·교양 이수 학점이 ${totals.others}학점으로, ${config.rules.otherMinimum}학점 이상 조건에 ${config.rules.otherMinimum - totals.others}학점 부족합니다.\n\n1학년 정보 또는 한문 ${config.rules.firstYearOthers}학점이 포함된 값입니다.\n빨간 테두리로 표시된 영역에서 과목을 추가하거나 변경해 주세요.`
+  });
+  return warnings;
+}
+
+export function getCreditBreakdown(config, selected) {
+  const totals = getCreditTotals(config, selected);
+  const rows = SUBJECTS.slice(0, 5).map(subject => {
+    const firstYear = config.rules.firstYearSubjects[subject.id] ?? null;
+    return { id: subject.id, label: subject.label, firstYear,
+      upperYears: totals.subjects[subject.id] - (firstYear ?? 0), total: totals.subjects[subject.id] };
+  });
+  const firstYearOtherSubjects = OTHERS.reduce((sum, id) => sum + (config.rules.firstYearSubjects[id] || 0), 0);
+  const firstYearOthers = config.rules.firstYearOthers + firstYearOtherSubjects;
+  rows.push({ id: 'others', label: '제2외국어·정보·교양', firstYear: firstYearOthers,
+    upperYears: totals.others - firstYearOthers, total: totals.others });
+  return rows;
+}
+
+export function getSaveWarning(config, selected) {
+  // 영역 조건을 먼저 안내해야 학생이 관련 과목의 테두리와 경고를 함께 이해할 수 있습니다.
+  const areaWarning = getAreaWarnings(config, selected)[0];
+  if (areaWarning) return areaWarning;
+  const errors = validateSelection(config, selected);
+  return errors.length ? { area: null, domains: [], message: errors.join('\n') } : null;
+}
+
 export function selectionError(config, selected, courseId) {
   let target;
   config.semesters.forEach(semester => semester.groups.forEach(group => {
@@ -98,6 +135,7 @@ export function getExportModel(config, draft) {
     year: config.year,
     student: Object.fromEntries(Object.entries(draft.student).map(([key, value]) => [key, value.trim()])),
     totals: getCreditTotals(config, draft.selected),
+    creditBreakdown: getCreditBreakdown(config, draft.selected),
     rules: config.rules,
     semesters: config.semesters.map(semester => ({
       label: semester.label, credits: getSemesterStatus(semester, draft.selected).total,

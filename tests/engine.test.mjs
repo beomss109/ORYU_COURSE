@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import data2025 from '../data/2025.js';
 import data2026 from '../data/2026.js';
 import { allCourses, courseLabel, createDraft, getCreditTotals, getSemesterStatus,
-  selectionError, validateSelection, getExportModel } from '../engine.js';
+  selectionError, validateSelection, getExportModel, getAreaWarnings, getSaveWarning } from '../engine.js';
 import { resultFilename } from '../export.js';
 
 const configs = [data2025, data2026];
@@ -118,6 +118,45 @@ for (const config of configs) {
     draft.selected.add(closed.id);
     assert.ok(validateSelection(config, draft.selected).length);
   });
+  test(`${config.year}: 국수영 경고 → 기타 영역 경고 → 전부 해제`, () => {
+    const draft = completedDraft(config);
+    function replace(semester, oldName, newName) {
+      draft.selected.delete(courseAt(config, semester, oldName).id);
+      select(config, draft, semester, newName);
+    }
+    replace('2-1', '일본어', '기하');
+    replace('2-2', '데이터 과학', '인공지능수학');
+    replace('3-1', '인공지능 기초', '영미문학읽기');
+    replace('2-1', '생명과학', '독서토론글쓰기');
+    assert.deepEqual([getCreditTotals(config, draft.selected).core, getCreditTotals(config, draft.selected).others], [84, 12]);
+    assert.deepEqual(getAreaWarnings(config, draft.selected).map(w => w.area), ['core', 'others']);
+    assert.deepEqual(getSaveWarning(config, draft.selected).domains, ['korean', 'math', 'english']);
+    replace('2-1', '독서토론글쓰기', '생명과학');
+    assert.equal(getCreditTotals(config, draft.selected).core, 80);
+    const nextWarning = getSaveWarning(config, draft.selected);
+    assert.equal(nextWarning.area, 'others');
+    assert.deepEqual(nextWarning.domains, ['language', 'info', 'liberal']);
+    assert.match(nextWarning.message, /4학점 부족/);
+    replace('2-1', '기하', '일본어');
+    assert.deepEqual(getAreaWarnings(config, draft.selected), []);
+    assert.equal(getSaveWarning(config, draft.selected), null);
+    assert.deepEqual(validateSelection(config, draft.selected), []);
+  });
+  test(`${config.year}: 결과의 1학년 + 2·3학년 = 합계 대조`, () => {
+    const draft = completedDraft(config);
+    const model = getExportModel(config, draft);
+    const byId = Object.fromEntries(model.creditBreakdown.map(row => [row.id, row]));
+    ['korean', 'math', 'english'].forEach(id => {
+      assert.equal(byId[id].firstYear, 8);
+      assert.equal(byId[id].firstYear + byId[id].upperYears, model.totals.subjects[id]);
+      assert.equal(byId[id].total, model.totals.subjects[id]);
+    });
+    assert.equal(byId.others.firstYear, 4);
+    assert.equal(byId.others.upperYears, 20);
+    assert.equal(byId.others.total, 24);
+    assert.equal(byId.society.firstYear, null, '미제공 학점을 0학점으로 확정하지 않음');
+    assert.equal(byId.science.firstYear, null, '미제공 학점을 0학점으로 확정하지 않음');
+  });
 }
 
 test('입학년도별 선택과 학생 정보를 분리', () => {
@@ -140,9 +179,9 @@ test('지역 경로·모듈 연결·화면 ID·학생 입력 안전성', () => {
   for (const [, id] of app.matchAll(/\$\('([^']+)'\)/g)) assert.ok(ids.includes(id), `missing element ${id}`);
   for (const filename of ['app.js', 'export.js', 'engine.js']) {
     const code = readFileSync(resolve(root, filename), 'utf8');
-    for (const [, path] of code.matchAll(/from '(\.[^']+)'/g)) assert.ok(existsSync(resolve(root, path)), path);
+    for (const [, path] of code.matchAll(/from '(\.[^']+)'/g)) assert.ok(existsSync(resolve(root, path.split('?')[0])), path);
   }
-  for (const [, path] of html.matchAll(/(?:src|href)="(\.[^"]+)"/g)) assert.ok(existsSync(resolve(root, path)), path);
+  for (const [, path] of html.matchAll(/(?:src|href)="(\.[^"]+)"/g)) assert.ok(existsSync(resolve(root, path.split('?')[0])), path);
   assert.ok(!html.includes('<iframe'));
   assert.ok(!app.includes('location.href'));
   assert.ok(!app.includes('innerHTML') && !exporter.includes('innerHTML'), '학생 입력은 textContent로 렌더링');

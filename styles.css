@@ -14,17 +14,16 @@ button, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible { outline: 3px solid #1689d7; outline-offset: 3px; }
 h1, h2, h3, p { overflow-wrap: anywhere; }
-.choosing-year { background: #e8eef0; }
+.choosing-year { background: #f7f9fb; }
 .year-picker { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem 1rem; }
-.year-card { width: min(100%, 560px); padding: 2.5rem; border: 1px solid #24575b; border-radius: 24px; background: var(--ink); color: #fff; box-shadow: 0 18px 54px #0b2b3217; }
-.eyebrow { color: #7fe3ce; font-size: .875rem; font-weight: 700; margin: 0 0 .6rem; }
-.year-card h1 { margin: 0; font-size: 2rem; letter-spacing: -.04em; }
-.picker-description { color: #c3d4d7; margin: .4rem 0 1.8rem; }
+.year-card { width: min(100%, 560px); padding: 2.25rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); box-shadow: 0 2px 8px #0b2b3208; }
+.eyebrow { color: #48716f; font-size: .875rem; font-weight: 700; margin: 0 0 .6rem; }
+.year-card h1 { margin: 0; font-size: 1.75rem; letter-spacing: -.035em; }
+.picker-description { color: #536871; margin: .4rem 0 1.8rem; }
 .year-options { display: grid; gap: .875rem; }
-.year-option { width: 100%; min-height: 72px; color: #fff; font-size: 1.125rem; font-weight: 700; background: #193e44; border: 1px solid #37656a; border-radius: 14px; padding: 1rem; transition: background .15s, border-color .15s; }
-.year-option:hover { background: #18564f; border-color: #82d8c8; }
-.year-option:focus-visible { outline-color: #8affdc; }
-.picker-note { margin: 1.7rem 0 0; border-top: 1px solid #315157; padding-top: 1.1rem; color: #bbd0d3; font-size: .875rem; }
+.year-option { width: 100%; min-height: 64px; color: #095e50; font-size: 1.0625rem; font-weight: 700; background: #f1f8f5; border: 1px solid #b7dbd1; border-radius: 8px; padding: 1rem; transition: background .15s, border-color .15s; }
+.year-option:hover { background: #e2f3ee; border-color: #6da998; }
+.picker-note { margin: 1.7rem 0 0; border-top: 1px solid var(--border); padding-top: 1.1rem; color: #60737b; font-size: .875rem; }
 .picker-credit { margin: 1.3rem 0 0; color: #60737b; font-size: .8125rem; }
 #simulator { max-width: 1840px; margin: auto; padding: 1.6rem 1.5rem 110px; }
 .app-header { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.5rem; }
@@ -53,12 +52,12 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 .course-area { margin-bottom: 1rem; }
 .area-title { font-size: .875rem; font-weight: 700; margin: 0 0 .45rem; }
 .course-list { display: flex; flex-wrap: wrap; gap: .4rem; align-items: flex-start; }
-.course-item { display: inline-block; color: #1b2b32; font-size: .875rem; text-align: left; line-height: 1.55; max-width: 100%; border: 1px solid transparent; border-radius: 7px; padding: .45rem .55rem; overflow-wrap: anywhere; }
-button.course-item:hover:not(:disabled) { filter: brightness(.96); border-color: #395963; }
-.course-item[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #416d64; }
+.course-item { appearance: none; display: inline-block; color: #1b2b32; font-size: .875rem; text-align: left; line-height: 1.4; max-width: 100%; border: 0; border-radius: 8px; padding: 6px 10px; overflow-wrap: anywhere; }
+button.course-item:hover:not(:disabled) { filter: brightness(.95); }
+.course-item[aria-pressed="true"]::after { content: '✓'; margin-left: .35rem; color: #22594c; font-weight: 700; }
 .course-item.fixed { cursor: default; }
 .course-item.closed, .legend-closed { background: #e6e8e9 !important; color: #5b656b; }
-.course-item.closed { cursor: not-allowed; border-color: #ced2d5; }
+.course-item.closed { cursor: not-allowed; border: 1px solid #ced2d5; }
 .course-item.closed::after { content: '폐강'; background: #647076; color: white; font-size: .75rem; padding: .08rem .3rem; border-radius: 3px; margin-left: .35rem; display: inline-block; }
 .course-korean { background-color: #fff9c4; }
 .course-math { background-color: #bbdefb; }
@@ -72,6 +71,8 @@ button.course-item:hover:not(:disabled) { filter: brightness(.96); border-color:
 .course-liberal { background-color: #e4dcd9; }
 .basket { border: 2px dashed #b9c8ce; border-radius: 8px; padding: .7rem; margin-top: 1.2rem; min-height: 100px; }
 .basket-title { font-size: .875rem; font-weight: 700; margin: 0 0 .5rem; }
+.basket .course-list { gap: 8px; }
+.basket .course-item { border-radius: 999px; padding: 6px 12px; box-shadow: none; }
 .basket-empty { margin: 0; color: #697b82; font-size: .875rem; }
 .highlight-valid { background: #effaf2; border: 2px solid #439a62; }
 .semester-summary { font-size: .875rem; font-weight: 700; margin: .65rem 0 0; }
@@ -81,13 +82,14 @@ button.course-item:hover:not(:disabled) { filter: brightness(.96); border-color:
 .total-summary-box p { margin: .25rem 0; }
 .total-summary-box .summary-note { font-size: .8125rem; color: #5c6c73; margin-bottom: .7rem; }
 .out-of-range { color: #b02d26; }
+.course-item.credit-warning { outline: 3px solid #ed1616 !important; outline-offset: 1px; box-shadow: 0 0 0 1px #fff !important; position: relative; z-index: 1; }
+.credit-warning-summary { outline: 3px solid #ed1616; outline-offset: 3px; border-radius: 4px; color: #b31515; background: #fff1f1; }
 .app-footer { color: #6b7c83; font-size: .8125rem; text-align: right; }
 .save-bar { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .8rem 2rem; padding: .85rem 1.5rem; background: #fffffff5; border-top: 1px solid #d5e0e4; box-shadow: 0 -4px 20px #12313d08; }
 .save-bar p { margin: 0; font-size: .875rem; color: #50686f; }
 .primary-button { background: var(--teal); color: #fff; font-weight: 700; border: 0; padding: .75rem 1.5rem; border-radius: 8px; }
-.primary-button[aria-disabled="true"] { background: #e0e6e9; color: #526771; cursor: default; }
+.primary-button[data-ready="false"] { background: #e0e6e9; color: #526771; cursor: pointer; }
 .primary-button:disabled { cursor: wait; opacity: .7; }
-.feedback { position: fixed; z-index: 10; left: 50%; bottom: 105px; transform: translateX(-50%); margin: 0; width: max-content; max-width: calc(100% - 2rem); padding: .85rem 1.2rem; color: white; background: #133941; border: 1px solid #4c7c80; box-shadow: 0 5px 20px #0b2b3222; border-radius: 10px; font-size: .9375rem; }
 .noscript-message { text-align: center; background: white; color: #222; padding: 1rem; }
 @media (max-width: 1500px) { .semester-container { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 740px) {
@@ -100,7 +102,6 @@ button.course-item:hover:not(:disabled) { filter: brightness(.96); border-color:
   .semester-container { grid-template-columns: minmax(0, 1fr); }
   .save-bar { gap: .55rem; padding: .7rem 1rem; }
   .save-bar p { width: 100%; text-align: center; }
-  .feedback { bottom: 135px; }
   .year-card { padding: 2rem 1.5rem; }
 }
 /* 저장 이미지는 화면 너비와 무관하게 4학기 가로 배치를 유지합니다. */
@@ -109,8 +110,11 @@ button.course-item:hover:not(:disabled) { filter: brightness(.96); border-color:
 .export-sheet p { margin: 4px 0; }
 .export-summary { margin: 14px 0; padding: 12px 14px; background: #f4f7f8; border: 1px solid #d9e1e5; border-radius: 8px; }
 .export-summary h3 { font-size: 15px; margin: 0 0 7px; }
-.export-subjects { display: flex; gap: 10px; flex-wrap: wrap; }
-.export-subjects span { padding: 4px 10px; border: 1px solid #d6e0e4; border-radius: 6px; background: white; }
+.export-credit-table { width: 100%; table-layout: fixed; border-collapse: collapse; background: #fff; margin: 8px 0 10px; font-size: 14px; }
+.export-credit-table th, .export-credit-table td { border: 1px solid #d6e0e4; padding: 6px 10px; text-align: center; }
+.export-credit-table thead th { background: #eaf1f3; font-weight: 700; }
+.export-credit-table th:first-child { text-align: left; width: 34%; }
+.export-credit-table .credit-total { font-weight: 700; background: #f2f8f5; }
 .export-note { color: #586a73; font-size: 12px; }
 .export-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
 .export-legend span { font-size: 12px; padding: 3px 7px; border-radius: 4px; }

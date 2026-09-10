@@ -1,4 +1,4 @@
-import { SUBJECTS, courseLabel } from './engine.js';
+import { SUBJECTS, courseLabel } from './engine.js?v=20260910-ui2';
 
 function node(tag, className, text) {
   const element = document.createElement(tag);
@@ -19,15 +19,33 @@ export function buildResultSheet(model) {
   sheet.appendChild(node('p', '', `학번: ${model.student.id} / 이름: ${model.student.name} / 희망학과(계열): ${model.student.major || '미입력'}`));
 
   const summary = node('div', 'export-summary');
-  summary.appendChild(node('h3', '', '교과별 이수 학점'));
-  const subjects = node('div', 'export-subjects');
-  SUBJECTS.slice(0, 5).forEach(subject => subjects.appendChild(node('span', '', `${subject.label}: ${model.totals.subjects[subject.id]}학점`)));
-  summary.appendChild(subjects);
-  // 기존 두 시뮬레이터에 설정된 1학년 반영 범위를 명시합니다. 미제공된 사회·과학 학점은 임의로 추가하지 않습니다.
-  const coreBaseline = SUBJECTS.slice(0, 3).map(subject => `${subject.label} ${model.rules.firstYearSubjects[subject.id]}학점`).join('·');
-  summary.appendChild(node('p', 'export-note', `※ ${coreBaseline}은 1학년 이수분 포함 / 사회·과학은 2·3학년 합계 / 일반·진로·융합 모두 합산`));
-  summary.appendChild(node('p', '', `국어·수학·영어: ${model.totals.core} / ${model.rules.coreLimit}학점 이하  |  제2외국어·정보·교양: ${model.totals.others} / ${model.rules.otherMinimum}학점 이상`));
-  summary.appendChild(node('p', 'export-note', `※ 제2외국어·정보·교양 합계에는 1학년 정보 또는 한문 ${model.rules.firstYearOthers}학점을 포함합니다.`));
+  summary.appendChild(node('h3', '', '영역별 이수 학점 합계'));
+  const table = node('table', 'export-credit-table');
+  const thead = node('thead');
+  const headerRow = node('tr');
+  ['영역', '1학년', '2·3학년', '합계'].forEach(label => {
+    const cell = node('th', '', label);
+    cell.scope = 'col';
+    headerRow.appendChild(cell);
+  });
+  thead.appendChild(headerRow);
+  const tbody = node('tbody');
+  model.creditBreakdown.forEach(row => {
+    const tr = node('tr');
+    const label = node('th', '', row.label);
+    label.scope = 'row';
+    tr.appendChild(label);
+    tr.appendChild(node('td', '', row.firstYear === null ? '미반영' : `${row.firstYear}학점`));
+    tr.appendChild(node('td', '', `${row.upperYears}학점`));
+    tr.appendChild(node('td', 'credit-total', `${row.total}학점${row.firstYear === null ? ' (2·3학년)' : ''}`));
+    tbody.appendChild(tr);
+  });
+  table.append(thead, tbody);
+  summary.appendChild(table);
+  const omitted = model.creditBreakdown.filter(row => row.firstYear === null).map(row => row.label);
+  if (omitted.length) summary.appendChild(node('p', 'export-note', `※ ${omitted.join('·')}은 1학년 이수분이 반영되지 않은 2·3학년 합계입니다.`));
+  summary.appendChild(node('p', '', `국어·수학·영어 합계(1학년 포함): ${model.totals.core} / ${model.rules.coreLimit}학점 이하  |  제2외국어·정보·교양 합계(1학년 포함): ${model.totals.others} / ${model.rules.otherMinimum}학점 이상`));
+  summary.appendChild(node('p', 'export-note', `※ 1학년 국어·수학·영어는 공통과목 이수분, 제2외국어·정보·교양은 정보 또는 한문 ${model.rules.firstYearOthers}학점 포함. 일반·진로·융합 모두 합산.`));
   sheet.appendChild(summary);
 
   const legend = node('div', 'export-legend');
