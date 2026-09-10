@@ -53,6 +53,7 @@ for (const config of configs) {
     const totals = getCreditTotals(config, new Set());
     assert.deepEqual([totals.core, totals.others], [56, 4]);
     assert.deepEqual([totals.subjects.korean, totals.subjects.math, totals.subjects.english], [20, 20, 16]);
+    assert.deepEqual([totals.subjects.society, totals.subjects.science], [8, 10]);
     assert.deepEqual(config.semesters.map(s => getSemesterStatus(s, new Set()).total), [14, 14, 10, 2]);
   });
   test(`${config.year}: 폐강·필수·다른 학기 중복 선택 제한`, () => {
@@ -154,8 +155,12 @@ for (const config of configs) {
     assert.equal(byId.others.firstYear, 4);
     assert.equal(byId.others.upperYears, 20);
     assert.equal(byId.others.total, 24);
-    assert.equal(byId.society.firstYear, null, '미제공 학점을 0학점으로 확정하지 않음');
-    assert.equal(byId.science.firstYear, null, '미제공 학점을 0학점으로 확정하지 않음');
+    assert.deepEqual([byId.society.firstYear, byId.society.upperYears, byId.society.total], [8, 16, 24]);
+    assert.deepEqual([byId.science.firstYear, byId.science.upperYears, byId.science.total], [10, 20, 30]);
+    assert.equal(model.rules.firstYearScienceLab, 2, '과학 10학점에 과학탐구실험 2학점 포함');
+    assert.equal(model.totals.subjects.society, 24);
+    assert.equal(model.totals.subjects.science, 30, '과학탐구실험을 중복 합산하지 않음');
+    assert.ok(model.creditBreakdown.every(row => row.firstYear !== null));
   });
 }
 

@@ -46,6 +46,11 @@ export function buildResultSheet(model) {
   if (omitted.length) summary.appendChild(node('p', 'export-note', `※ ${omitted.join('·')}은 1학년 이수분이 반영되지 않은 2·3학년 합계입니다.`));
   summary.appendChild(node('p', '', `국어·수학·영어 합계(1학년 포함): ${model.totals.core} / ${model.rules.coreLimit}학점 이하  |  제2외국어·정보·교양 합계(1학년 포함): ${model.totals.others} / ${model.rules.otherMinimum}학점 이상`));
   summary.appendChild(node('p', 'export-note', `※ 1학년 국어·수학·영어는 공통과목 이수분, 제2외국어·정보·교양은 정보 또는 한문 ${model.rules.firstYearOthers}학점 포함. 일반·진로·융합 모두 합산.`));
+  const { society, science } = model.rules.firstYearSubjects;
+  const scienceLab = model.rules.firstYearScienceLab;
+  if (society !== undefined && science !== undefined && scienceLab !== undefined) {
+    summary.appendChild(node('p', 'export-note', `※ 1학년 사회: 통합사회1·2 ${society}학점. 과학: 통합과학1·2 ${science - scienceLab}학점 + 과학탐구실험1·2 ${scienceLab}학점(학기당 ${scienceLab / 2}학점), 총 ${science}학점.`));
+  }
   sheet.appendChild(summary);
 
   const legend = node('div', 'export-legend');

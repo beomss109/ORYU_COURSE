@@ -5,8 +5,11 @@ export default {
     "firstYearSubjects": {
       "korean": 8,
       "math": 8,
-      "english": 8
+      "english": 8,
+      "society": 8,
+      "science": 10
     },
+    "firstYearScienceLab": 2,
     "firstYearOthers": 4,
     "coreLimit": 81,
     "otherMinimum": 16
@@ -1011,4 +1014,3 @@ export default {
     }
   ]
 };
-

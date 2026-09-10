@@ -1,11 +1,11 @@
-import data2025 from './data/2025.js';
-import data2026 from './data/2026.js';
+import data2025 from './data/2025.js?v=20260910-credits1';
+import data2026 from './data/2026.js?v=20260910-credits1';
 import {
   SUBJECTS, courseLabel, createDraft, getCreditTotals, getSemesterStatus,
   selectionError, validateSelection, getExportModel, selectedCourses, sortBySubject,
   getAreaWarnings, getSaveWarning
 } from './engine.js?v=20260910-ui2';
-import { saveResultImage } from './export.js?v=20260910-ui2';
+import { saveResultImage } from './export.js?v=20260910-credits1';
 
 const admissionData = new Map([[2026, data2026], [2025, data2025]]);
 const drafts = new Map(); // 탭을 열어 둔 동안만 유지하며, 학생 정보를 외부에 전송하지 않습니다.
