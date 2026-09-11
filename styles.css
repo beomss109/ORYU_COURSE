@@ -76,10 +76,12 @@ button.course-item:hover:not(:disabled) { filter: brightness(.95); }
 .basket-empty { margin: 0; color: #697b82; font-size: .875rem; }
 .highlight-valid { background: #effaf2; border: 2px solid #439a62; }
 .semester-summary { font-size: .875rem; font-weight: 700; margin: .65rem 0 0; }
-.total-summary-box { margin: 1.5rem auto; padding: 1rem 1.2rem; background: #fff; border: 1px solid var(--border); border-radius: 12px; }
-.total-summary-box.valid { background: #ecf8ef; border-color: #7cad8b; }
-.total-summary-box h2 { font-size: 1rem; margin: 0 0 .5rem; }
+.total-summary-box { margin: 1.5rem auto; padding: 1.25rem 1.4rem; background: #fffceb; border: 2px solid #d3b361; border-left-width: 6px; border-radius: 12px; }
+.total-summary-box.valid { background: #ecf8ef; border-color: #439a62; }
+.total-summary-box h2 { font-size: 1.125rem; margin: 0 0 .75rem; color: #8c581b; }
+.total-summary-box.valid h2 { color: #226e3d; }
 .total-summary-box p { margin: .25rem 0; }
+.total-summary-box > p:not(.summary-note) { font-weight: 700; }
 .total-summary-box .summary-note { font-size: .8125rem; color: #5c6c73; margin-bottom: .7rem; }
 .out-of-range { color: #b02d26; }
 .course-item.credit-warning { outline: 3px solid #ed1616 !important; outline-offset: 1px; box-shadow: 0 0 0 1px #fff !important; position: relative; z-index: 1; }
